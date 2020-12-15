@@ -100,9 +100,9 @@ int main(int argc, char* argv[])
 				}
 				imshow("patch", patch);
 				waitKey(0);
-			}
+			} 
 
-			//计算局部对比度
+			//计算局部对比度,hh
 
 			//计算结构
 
