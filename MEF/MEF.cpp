@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 
 			//计算局部对比度,hh
 
-			//计算结构
+			//计算结构,pscham
 
 			//计算平均亮度
 
