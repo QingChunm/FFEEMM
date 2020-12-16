@@ -57,7 +57,18 @@ int main(int argc, char* argv[])
 	int frames = files.size();
 	vector<Mat> imgs;
 	vector<Mat> patchs;
+	vector<double> y_mean;
+	vector<double> fc;
+	double fc_max = 0;
+	int p_fs = 2;
+	Mat sum_fs_s;
+	Mat sum_fs;
+	Mat fs_vec;
+	double sum_fl_l = 0;
+	double sum_fl = 0;
+	double fl = 0;
 
+	double delata = 0.5;
 	int patch_size = 11;
 	unsigned char patch[361] = { 0 };
 	
@@ -71,11 +82,13 @@ int main(int argc, char* argv[])
 		vector<Mat> vec;
 		split(ycrcb, vec);
 		imgs.push_back(vec[0]);
+		Scalar ymean = mean(vec[0]);
+		y_mean.push_back(ymean.val[0]);
 		imshow("img seq", imgs[k]);
 		waitKey(0);
 	}
 
-
+	
 
 	int image_width = imgs[0 ].cols;
 	int image_heit = imgs[0].rows;
@@ -100,18 +113,52 @@ int main(int argc, char* argv[])
 				}
 				imshow("patch", patch);
 				waitKey(0);
-			} 
 
-			//计算局部对比度,hh
+				Scalar patch_mean = mean(patch);
+				double lk = patch_mean.val[0];
 
-			//计算结构,pscham
+				double n2 = norm(patch - lk, 2);
+				//计算每个patch局部对比度
+				if (n2 > fc_max) 
+					fc_max = n2;
+				fc.push_back(n2);
 
-			//计算平均亮度
+				//计算每个patch结构
+				double np = norm(patch - lk, p_fs);
+				
+				Mat a = patch / n2;
+				imshow("a", a);
+				waitKey(0);
+				sum_fs_s +=  np*(patch / n2);
+				sum_fs += np;
 
 
+				//计算每个patch平均亮度
+				double uk = y_mean[k];
+				double L_uk_lk = exp(((0 - ((uk - 0.5)*(uk - 0.5))) - (0 - ((lk - 0.5)*(lk - 0.5))))/(2*delata*delata));
+				sum_fl_l += L_uk_lk*lk;
+				sum_fl += L_uk_lk;
 
+			}
 
+			//Fc + 检查取值有没有问题
+			fc_max = fc_max;
 
+			//Fs + 检查取值有没有问题
+			fs_vec = (sum_fs_s / sum_fs) / (norm((sum_fs_s / sum_fs), 2));
+
+			//Fl + 检查取值有没有问题
+			fl = sum_fl_l / sum_fl;
+
+			imshow("out", fc_max*fs_vec + fl);
+			waitKey(0);
+
+			sum_fl_l = 0;
+			sum_fl = 0;
+			sum_fs.release();
+			sum_fs_s.release();
+			fc_max = 0;
+			fc.clear();
 			patchs.clear();
 		}
 	}
